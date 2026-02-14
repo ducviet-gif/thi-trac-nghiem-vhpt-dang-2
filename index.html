@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Hệ thống Ôn thi K76.A03 - Tự động vào Guest</title>
+    <title>Hệ thống Ôn thi K76.A03 - Có Lịch sử</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         :root { 
@@ -10,13 +10,10 @@
             --accent: #2980b9; --light: #f4f7f6; --shadow: 0 10px 30px rgba(0,0,0,0.2);
         }
         body { font-family: 'Segoe UI', Arial, sans-serif; margin: 0; padding: 0; color: #1a1a1a; font-size: 18px; background-color: var(--light); }
-        
         .container { max-width: 1000px; margin: 30px auto; background: white; padding: 30px; border-radius: 25px; box-shadow: var(--shadow); min-height: 80vh; }
         
-        /* Header & Nav */
         header { text-align: center; margin-bottom: 30px; border-bottom: 3px solid var(--primary); padding-bottom: 15px; }
         header h1 { color: var(--primary); margin: 0; font-size: 28px; }
-        header p { color: var(--accent); font-weight: bold; margin: 5px 0; }
 
         nav { display: flex; gap: 12px; margin-bottom: 25px; flex-wrap: wrap; justify-content: center; }
         button { padding: 12px 25px; border: none; border-radius: 12px; cursor: pointer; font-weight: bold; font-size: 16px; transition: 0.1s; box-shadow: 0 5px #7f8c8d; position: relative; outline: none; }
@@ -25,22 +22,22 @@
         .btn-main { background: var(--primary); color: white; box-shadow: 0 5px #1a252f; }
         .btn-orange { background: #d35400; color: white; box-shadow: 0 5px #a04000; }
         .btn-green { background: var(--secondary); color: white; box-shadow: 0 5px #196f3d; }
-        .btn-sub { background: var(--accent); color: white; box-shadow: 0 5px #1a5276; }
+        .btn-purple { background: #8e44ad; color: white; box-shadow: 0 5px #6c3483; }
 
-        /* Question Block */
-        .q-block { border: 1px solid #cfd8dc; padding: 25px; margin: 15px 0; border-radius: 15px; background: #fff; position: relative; }
+        .q-block { border: 1px solid #cfd8dc; padding: 25px; margin: 15px 0; border-radius: 15px; background: #fff; }
         .q-block p { font-weight: bold; font-size: 21px; color: #0d47a1; margin-top: 0; line-height: 1.5; }
         
         .tf-group { display: flex; gap: 60px; margin-top: 15px; }
-        .option-item { display: flex; align-items: center; cursor: pointer; font-size: 20px; font-weight: bold; padding: 10px; border-radius: 8px; transition: 0.2s; }
-        .option-item:hover { background: #f0f7ff; }
+        .option-item { display: flex; align-items: center; cursor: pointer; font-size: 20px; font-weight: bold; }
         input[type="radio"] { width: 28px; height: 28px; margin-right: 12px; cursor: pointer; }
         
-        /* Result Styles */
         .wrong-ans { border-left: 10px solid var(--danger) !important; background: #ffebee !important; }
         .result-header { background: #fff9c4; border: 4px solid #fbc02d; padding: 25px; margin-bottom: 25px; border-radius: 15px; text-align: center; display: none; }
         
-        #sync-info { font-size: 14px; text-align: center; margin-bottom: 10px; font-weight: bold; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; background: #fff; border-radius: 10px; overflow: hidden; }
+        th, td { padding: 15px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background: #f8f9fa; color: var(--primary); }
+
         .hidden { display: none !important; }
     </style>
 </head>
@@ -49,41 +46,38 @@
 <div class="container">
     <header>
         <h1>Hệ thống Ôn thi Văn hoá Phát triển</h1>
-        <p>K76.A03 - Chế độ luyện tập tự do</p>
+        <p style="color:var(--accent); font-weight:bold;">K76.A03 - Chế độ Guest</p>
     </header>
 
-    <div id="sync-info" style="color: #e67e22;">⏳ Đang tải dữ liệu từ Google Sheets...</div>
+    <div id="sync-info" style="text-align:center; color: #e67e22; font-weight:bold; margin-bottom:10px;">⏳ Đang tải dữ liệu từ Google Sheets...</div>
 
     <nav id="main-nav" class="hidden">
         <button class="btn-main" onclick="startQuiz(10)">🎲 THI 10 CÂU</button>
         <button class="btn-orange" onclick="startQuiz(20)">🔥 THI 20 CÂU</button>
         <button class="btn-green" onclick="renderViewAll()">📚 XEM ĐÁP ÁN</button>
-        <button class="btn-sub" onclick="location.reload()">🔄 LÀM MỚI DỮ LIỆU</button>
+        <button class="btn-purple" onclick="renderHistory()">📜 LỊCH SỬ THI</button>
     </nav>
 
     <div id="top-result" class="result-header">
         <div id="score-text"></div>
-        <button class="btn-main" onclick="resetQuiz()">LÀM ĐỀ KHÁC</button>
+        <button class="btn-main" onclick="resetApp()">LÀM ĐỀ KHÁC</button>
     </div>
 
     <div id="app-area"></div>
-    
     <button class="btn-green hidden" id="submit-btn" style="width:100%; font-size:24px; padding:20px; border-radius:15px; margin-top:20px" onclick="submitQuiz()">NỘP BÀI KIỂM TRA</button>
 </div>
 
 <script>
-// --- CẤU HÌNH ĐƯỜNG DẪN DỮ LIỆU ---
 const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ0PBaO37SuC5N0NbCMHlN5qY8AvvpKtYbv7pWTpjgjdPvOkBMWZLcvLCX-B0U6zdgCy0rYPIWoZB64/pub?output=csv';
 
 let App = {
     db: [],
-    currentQs: []
+    currentQs: [],
+    history: JSON.parse(localStorage.getItem('vhpt_guest_history')) || [],
+    currentType: ''
 };
 
-// --- TỰ ĐỘNG TẢI DỮ LIỆU KHI MỞ TRANG ---
-window.onload = async () => {
-    await syncData();
-};
+window.onload = async () => { await syncData(); };
 
 async function syncData() {
     try {
@@ -92,53 +86,36 @@ async function syncData() {
         const workbook = XLSX.read(csv, {type:'string'});
         const data = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
         
-        // Chuyển đổi dữ liệu dựa trên tiêu đề: Câu, Nội dung, Đúng, Sai 
         App.db = data.map(r => {
             const getVal = (k) => r[Object.keys(r).find(x => x.trim() === k)] || '';
-            
-            // Logic Đúng/Sai: Nếu cột 'Đúng' có dấu 'x' thì đáp án là Đúng 
             let correctAns = "Đúng";
-            if (getVal('Sai').toString().toLowerCase() === 'x') {
-                correctAns = "Sai";
-            }
-            
-            return {
-                content: getVal('Nội dung'),
-                ans: correctAns
-            };
+            if (getVal('Sai').toString().toLowerCase() === 'x') correctAns = "Sai";
+            return { content: getVal('Nội dung'), ans: correctAns };
         }).filter(x => x.content);
 
-        document.getElementById('sync-info').innerHTML = `✅ Đã tải thành công ${App.db.length} câu hỏi. Sẵn sàng ôn tập!`;
+        document.getElementById('sync-info').innerHTML = `✅ Sẵn sàng ôn tập với ${App.db.length} câu hỏi!`;
         document.getElementById('main-nav').classList.remove('hidden');
     } catch (e) {
-        document.getElementById('sync-info').innerHTML = `❌ Lỗi kết nối dữ liệu Drive. Vui lòng kiểm tra lại link CSV!`;
-        console.error(e);
+        document.getElementById('sync-info').innerHTML = `❌ Lỗi tải dữ liệu. Hãy kiểm tra kết nối!`;
     }
 }
 
-// --- LOGIC THI TRẮC NGHIỆM ---
 function startQuiz(count) {
+    App.currentType = `Thi ${count} câu`;
     document.getElementById('top-result').style.display = 'none';
-    // Xáo trộn ngẫu nhiên [cite: 13]
     App.currentQs = [...App.db].sort(() => 0.5 - Math.random()).slice(0, count);
-    
     renderQuiz();
 }
 
 function renderQuiz() {
     document.getElementById('submit-btn').classList.remove('hidden');
     const area = document.getElementById('app-area');
-    
     area.innerHTML = App.currentQs.map((q, i) => `
         <div class="q-block" id="wrap-${i}">
             <p>${i+1}. ${q.content}</p>
             <div class="tf-group">
-                <label class="option-item">
-                    <input type="radio" name="q${i}" value="Đúng"> Đúng
-                </label>
-                <label class="option-item">
-                    <input type="radio" name="q${i}" value="Sai"> Sai
-                </label>
+                <label class="option-item"><input type="radio" name="q${i}" value="Đúng"> Đúng</label>
+                <label class="option-item"><input type="radio" name="q${i}" value="Sai"> Sai</label>
             </div>
         </div>
     `).join('');
@@ -150,40 +127,62 @@ function submitQuiz() {
     App.currentQs.forEach((q, i) => {
         const selected = document.querySelector(`input[name="q${i}"]:checked`);
         const wrap = document.getElementById(`wrap-${i}`);
-        
-        if (selected && selected.value === q.ans) {
-            score++;
-        } else {
+        if (selected && selected.value === q.ans) score++;
+        else {
             wrap.classList.add('wrong-ans');
-            wrap.innerHTML += `<div style="color:var(--danger); font-weight:bold; margin-top:10px; font-size: 19px;">👉 ĐÁP ÁN ĐÚNG: ${q.ans.toUpperCase()}</div>`;
+            wrap.innerHTML += `<div style="color:var(--danger); font-weight:bold; margin-top:10px;">👉 ĐÁP ÁN ĐÚNG: ${q.ans.toUpperCase()}</div>`;
         }
     });
 
-    document.getElementById('score-text').innerHTML = `<h2>KẾT QUẢ: ${score} / ${App.currentQs.length} CÂU ĐÚNG</h2>`;
+    // Lưu lịch sử
+    const result = {
+        date: new Date().toLocaleString(),
+        type: App.currentType,
+        score: `${score}/${App.currentQs.length}`
+    };
+    App.history.push(result);
+    localStorage.setItem('vhpt_guest_history', JSON.stringify(App.history));
+
+    document.getElementById('score-text').innerHTML = `<h2>KẾT QUẢ: ${score} / ${App.currentQs.length}</h2>`;
     document.getElementById('top-result').style.display = 'block';
     document.getElementById('submit-btn').classList.add('hidden');
     window.scrollTo({top: 0, behavior: 'smooth'});
 }
 
-function renderViewAll() {
+function renderHistory() {
     document.getElementById('top-result').style.display = 'none';
     document.getElementById('submit-btn').classList.add('hidden');
     const area = document.getElementById('app-area');
     
-    area.innerHTML = `<h2 style="text-align:center; color: var(--primary);">DANH SÁCH TOÀN BỘ ĐÁP ÁN</h2>` + 
-    App.db.map((q, i) => `
-        <div class="q-block">
-            <p>${i+1}. ${q.content}</p>
-            <b style="color: ${q.ans === 'Đúng' ? 'var(--secondary)' : 'var(--danger)'}">=> ĐÁP ÁN: ${q.ans.toUpperCase()}</b>
-        </div>
-    `).join('');
-    window.scrollTo({top: 0, behavior: 'smooth'});
+    if (App.history.length === 0) {
+        area.innerHTML = "<p style='text-align:center;'>Bạn chưa có lịch sử thi nào.</p>";
+        return;
+    }
+
+    let html = `<h3>📜 LỊCH SỬ THI GẦN ĐÂY</h3><table><tr><th>Thời gian</th><th>Loại bài</th><th>Kết quả</th></tr>`;
+    App.history.slice().reverse().forEach(h => {
+        html += `<tr><td>${h.date}</td><td>${h.type}</td><td style="color:var(--secondary); font-weight:bold;">${h.score}</td></tr>`;
+    });
+    html += `</table><button class="btn-orange" style="margin-top:20px; width:100%;" onclick="clearHistory()">XÓA LỊCH SỬ</button>`;
+    area.innerHTML = html;
 }
 
-function resetQuiz() {
-    document.getElementById('top-result').style.display = 'none';
-    document.getElementById('app-area').innerHTML = '';
+function clearHistory() {
+    if (confirm("Bạn có chắc muốn xóa toàn bộ lịch sử không?")) {
+        App.history = [];
+        localStorage.removeItem('vhpt_guest_history');
+        renderHistory();
+    }
 }
+
+function renderViewAll() {
+    document.getElementById('top-result').style.display = 'none';
+    document.getElementById('submit-btn').classList.add('hidden');
+    document.getElementById('app-area').innerHTML = `<h2 style="text-align:center;">DANH SÁCH ĐÁP ÁN</h2>` + 
+    App.db.map((q, i) => `<div class="q-block"><p>${i+1}. ${q.content}</p><b style="color:${q.ans==='Đúng'?'green':'red'}">=> ${q.ans.toUpperCase()}</b></div>`).join('');
+}
+
+function resetApp() { document.getElementById('top-result').style.display = 'none'; document.getElementById('app-area').innerHTML = ''; }
 </script>
 </body>
 </html>
