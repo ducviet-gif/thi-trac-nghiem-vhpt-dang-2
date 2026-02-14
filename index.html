@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Hệ thống Ôn thi K76.A03 - Dạng đề 2 Đúng/Sai</title>
+     <title>K76.A03 - Hệ Thống Ôn Thi VHPT - Dạng 2 Chọn Đúng/Sai</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         :root { 
@@ -10,19 +10,24 @@
             --accent: #2980b9; --light: #f4f7f6; --shadow: 0 10px 30px rgba(0,0,0,0.2);
         }
         body { font-family: 'Segoe UI', Arial, sans-serif; margin: 0; padding: 0; color: #1a1a1a; font-size: 18px; background-color: var(--light); }
-        .container { max-width: 1000px; margin: 30px auto; background: white; padding: 30px; border-radius: 25px; box-shadow: var(--shadow); min-height: 80vh; }
+        .container { max-width: 1100px; margin: 30px auto; background: white; padding: 30px; border-radius: 25px; box-shadow: var(--shadow); min-height: 80vh; }
         
         header { text-align: center; margin-bottom: 30px; border-bottom: 3px solid var(--primary); padding-bottom: 15px; }
         header h1 { color: var(--primary); margin: 0; font-size: 28px; }
 
-        nav { display: flex; gap: 12px; margin-bottom: 25px; flex-wrap: wrap; justify-content: center; }
-        button { padding: 12px 25px; border: none; border-radius: 12px; cursor: pointer; font-weight: bold; font-size: 16px; transition: 0.1s; box-shadow: 0 5px #7f8c8d; position: relative; outline: none; }
+        nav { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; justify-content: center; }
+        button { padding: 12px 20px; border: none; border-radius: 12px; cursor: pointer; font-weight: bold; font-size: 16px; transition: 0.1s; box-shadow: 0 5px #7f8c8d; position: relative; outline: none; }
         button:active { box-shadow: 0 0 #7f8c8d; transform: translateY(5px); }
         
         .btn-main { background: var(--primary); color: white; box-shadow: 0 5px #1a252f; }
         .btn-orange { background: #d35400; color: white; box-shadow: 0 5px #a04000; }
+        .btn-sub { background: var(--accent); color: white; box-shadow: 0 5px #1a5276; }
         .btn-green { background: var(--secondary); color: white; box-shadow: 0 5px #196f3d; }
         .btn-purple { background: #8e44ad; color: white; box-shadow: 0 5px #6c3483; }
+
+        /* Thanh chọn bộ đề giống demo */
+        #selector-bar { background:#f1f1f1; padding:15px; border-radius:15px; margin-bottom:20px; display:flex; gap:8px; flex-wrap:wrap; justify-content:center; border:1px solid #ddd; }
+        #selector-bar button { padding: 8px 15px; font-size: 14px; box-shadow: 0 3px #95a5a6; }
 
         .q-block { border: 1px solid #cfd8dc; padding: 25px; margin: 15px 0; border-radius: 15px; background: #fff; }
         .q-block p { font-weight: bold; font-size: 21px; color: #0d47a1; margin-top: 0; line-height: 1.5; }
@@ -34,9 +39,9 @@
         .wrong-ans { border-left: 10px solid var(--danger) !important; background: #ffebee !important; }
         .result-header { background: #fff9c4; border: 4px solid #fbc02d; padding: 25px; margin-bottom: 25px; border-radius: 15px; text-align: center; display: none; }
         
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; background: #fff; border-radius: 10px; overflow: hidden; }
-        th, td { padding: 15px; text-align: left; border-bottom: 1px solid #ddd; }
-        th { background: #f8f9fa; color: var(--primary); }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; background: #fff; }
+        th, td { padding: 15px; text-align: left; border: 1px solid #ddd; }
+        th { background: #f8f9fa; }
 
         .hidden { display: none !important; }
     </style>
@@ -45,18 +50,21 @@
 
 <div class="container">
     <header>
-        <h1>Hệ thống Ôn thi Văn hoá Phát triển - Dạng đề 2 Đúng/Sai</h1>
-        <p style="color:var(--accent); font-weight:bold;">K76.A03 - Chế độ Guest</p>
+        <h1>Hệ thống ôn tập thi trắc nghiệm</h1>
+        <h2>Môn: Văn hoá Phát triển - Lớp K76.A03 - Dạng 1 Chọn Đúng/Sai</h2>
     </header>
 
-    <div id="sync-info" style="text-align:center; color: #e67e22; font-weight:bold; margin-bottom:10px;">⏳ Đang tải dữ liệu từ Google Sheets...</div>
+    <div id="sync-info" style="text-align:center; color: #e67e22; font-weight:bold; margin-bottom:10px;">⏳ Đang tải dữ liệu...</div>
 
     <nav id="main-nav" class="hidden">
-        <button class="btn-main" onclick="startQuiz(10)">🎲 THI 10 CÂU</button>
-        <button class="btn-orange" onclick="startQuiz(20)">🔥 THI 20 CÂU</button>
-        <button class="btn-green" onclick="renderViewAll()">📚 XEM TOÀN BỘ ĐÁP ÁN</button>
-        <button class="btn-purple" onclick="renderHistory()">📜 LỊCH SỬ THI</button>
+        <button class="btn-main" onclick="startRandom(10)">🎲 THI 10 CÂU (NGẪU NHIÊN)</button>
+        <button class="btn-orange" onclick="startRandom(20)">🔥 THI 20 CÂU (NGẪU NHIÊN)</button>
+        <button class="btn-sub" onclick="renderSets()">🔢 THEO BỘ ĐỀ (LẦN LƯỢT)</button>
+        <button class="btn-green" onclick="renderViewAll()">📚 XEM ĐÁP ÁN</button>
+        <button class="btn-purple" onclick="renderHistory()">📜 LỊCH SỬ</button>
     </nav>
+
+    <div id="selector-bar" class="hidden"></div>
 
     <div id="top-result" class="result-header">
         <div id="score-text"></div>
@@ -68,12 +76,13 @@
 </div>
 
 <script>
+// Link CSV từ Google Sheets của bạn 
 const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ0PBaO37SuC5N0NbCMHlN5qY8AvvpKtYbv7pWTpjgjdPvOkBMWZLcvLCX-B0U6zdgCy0rYPIWoZB64/pub?output=csv';
 
 let App = {
     db: [],
     currentQs: [],
-    history: JSON.parse(localStorage.getItem('vhpt_guest_history')) || [],
+    history: JSON.parse(localStorage.getItem('vhpt_v3_history')) || [],
     currentType: ''
 };
 
@@ -86,6 +95,7 @@ async function syncData() {
         const workbook = XLSX.read(csv, {type:'string'});
         const data = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
         
+        // Chuyển đổi dữ liệu: cột 'Nội dung', 'Đúng', 'Sai' [cite: 2, 3]
         App.db = data.map(r => {
             const getVal = (k) => r[Object.keys(r).find(x => x.trim() === k)] || '';
             let correctAns = "Đúng";
@@ -93,21 +103,49 @@ async function syncData() {
             return { content: getVal('Nội dung'), ans: correctAns };
         }).filter(x => x.content);
 
-        document.getElementById('sync-info').innerHTML = `✅ Sẵn sàng ôn tập với ${App.db.length} câu hỏi!`;
+        document.getElementById('sync-info').innerHTML = `✅ Đã tải ${App.db.length} câu hỏi thành công!`;
         document.getElementById('main-nav').classList.remove('hidden');
     } catch (e) {
-        document.getElementById('sync-info').innerHTML = `❌ Lỗi tải dữ liệu. Hãy kiểm tra kết nối!`;
+        document.getElementById('sync-info').innerHTML = `❌ Lỗi tải dữ liệu online!`;
     }
 }
 
-function startQuiz(count) {
-    App.currentType = `Thi ${count} câu`;
-    document.getElementById('top-result').style.display = 'none';
+// --- CHỨC NĂNG BỘ ĐỀ (LẦN LƯỢT) ---
+function renderSets() {
+    const bar = document.getElementById('selector-bar');
+    bar.classList.remove('hidden');
+    document.getElementById('app-area').innerHTML = '';
+    document.getElementById('submit-btn').classList.add('hidden');
+    
+    let html = "<b>Chọn bộ đề (10 câu/bộ): </b>";
+    const totalSets = Math.ceil(App.db.length / 10);
+    
+    for(let i = 1; i <= totalSets; i++) {
+        html += `<button class="btn-sub" onclick="startSet(${i})">Bộ ${i}</button>`;
+    }
+    bar.innerHTML = html;
+}
+
+function startSet(setIdx) {
+    App.currentType = `Bộ đề ${setIdx} (Lần lượt)`;
+    const start = (setIdx - 1) * 10;
+    const end = start + 10;
+    App.currentQs = App.db.slice(start, end); // Cắt 10 câu lần lượt không ngẫu nhiên 
+    
+    document.getElementById('selector-bar').classList.add('hidden');
+    renderQuiz();
+}
+
+// --- CHỨC NĂNG NGẪU NHIÊN ---
+function startRandom(count) {
+    App.currentType = `Ngẫu nhiên ${count} câu`;
+    document.getElementById('selector-bar').classList.add('hidden');
     App.currentQs = [...App.db].sort(() => 0.5 - Math.random()).slice(0, count);
     renderQuiz();
 }
 
 function renderQuiz() {
+    document.getElementById('top-result').style.display = 'none';
     document.getElementById('submit-btn').classList.remove('hidden');
     const area = document.getElementById('app-area');
     area.innerHTML = App.currentQs.map((q, i) => `
@@ -134,14 +172,8 @@ function submitQuiz() {
         }
     });
 
-    // Lưu lịch sử
-    const result = {
-        date: new Date().toLocaleString(),
-        type: App.currentType,
-        score: `${score}/${App.currentQs.length}`
-    };
-    App.history.push(result);
-    localStorage.setItem('vhpt_guest_history', JSON.stringify(App.history));
+    App.history.push({ date: new Date().toLocaleString(), type: App.currentType, score: `${score}/${App.currentQs.length}` });
+    localStorage.setItem('vhpt_v3_history', JSON.stringify(App.history));
 
     document.getElementById('score-text').innerHTML = `<h2>KẾT QUẢ: ${score} / ${App.currentQs.length}</h2>`;
     document.getElementById('top-result').style.display = 'block';
@@ -150,40 +182,27 @@ function submitQuiz() {
 }
 
 function renderHistory() {
-    document.getElementById('top-result').style.display = 'none';
+    document.getElementById('selector-bar').classList.add('hidden');
     document.getElementById('submit-btn').classList.add('hidden');
     const area = document.getElementById('app-area');
-    
-    if (App.history.length === 0) {
-        area.innerHTML = "<p style='text-align:center;'>Bạn chưa có lịch sử thi nào.</p>";
-        return;
-    }
+    if (App.history.length === 0) { area.innerHTML = "<p>Chưa có lịch sử.</p>"; return; }
 
-    let html = `<h3>📜 LỊCH SỬ THI GẦN ĐÂY</h3><table><tr><th>Thời gian</th><th>Loại bài</th><th>Kết quả</th></tr>`;
+    let html = `<h3>📜 LỊCH SỬ THI</h3><table><tr><th>Thời gian</th><th>Loại bài</th><th>Kết quả</th></tr>`;
     App.history.slice().reverse().forEach(h => {
         html += `<tr><td>${h.date}</td><td>${h.type}</td><td style="color:var(--secondary); font-weight:bold;">${h.score}</td></tr>`;
     });
-    html += `</table><button class="btn-orange" style="margin-top:20px; width:100%;" onclick="clearHistory()">XÓA LỊCH SỬ</button>`;
+    html += `</table>`;
     area.innerHTML = html;
 }
 
-function clearHistory() {
-    if (confirm("Bạn có chắc muốn xóa toàn bộ lịch sử không?")) {
-        App.history = [];
-        localStorage.removeItem('vhpt_guest_history');
-        renderHistory();
-    }
-}
-
 function renderViewAll() {
-    document.getElementById('top-result').style.display = 'none';
+    document.getElementById('selector-bar').classList.add('hidden');
     document.getElementById('submit-btn').classList.add('hidden');
     document.getElementById('app-area').innerHTML = `<h2 style="text-align:center;">DANH SÁCH ĐÁP ÁN</h2>` + 
-    App.db.map((q, i) => `<div class="q-block"><p>${i+1}. ${q.content}</p><b style="color:${q.ans==='Đúng'?'green':'red'}">=> ${q.ans.toUpperCase()}</b></div>`).join('');
+    App.db.map((q, i) => `<div class="q-block"><p>${i+1}. ${q.content}</p><b style="color:${q.ans==='Đúng'?'green':'red'}">=> ĐÁP ÁN: ${q.ans.toUpperCase()}</b></div>`).join('');
 }
 
 function resetApp() { document.getElementById('top-result').style.display = 'none'; document.getElementById('app-area').innerHTML = ''; }
 </script>
 </body>
 </html>
-
